@@ -98,22 +98,28 @@
     </dependencies>
 
     <build>
+        <finalName>app</finalName>
         <plugins>
-
-            <!-- SPRING BOOT -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <dependencies>
-                    <dependency>
-                        <groupId>com.mysql</groupId>
-                        <artifactId>mysql-connector-j</artifactId>
-                        <version>8.3.0</version>
-                    </dependency>
-                </dependencies>
             </plugin>
-
-            <!-- COMPILER (for Lombok) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -127,7 +133,6 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
-
         </plugins>
     </build>
 
