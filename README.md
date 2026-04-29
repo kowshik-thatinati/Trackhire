@@ -14,6 +14,9 @@ cd jobtracker/jobtracker
 
 **Production (MySQL - Railway Ready):**
 The app is pre-configured to use MySQL via environment variables.
+> [!IMPORTANT]
+> When deploying to Railway, set the **Root Directory** to `/jobtracker` in your service settings, as the Maven project is located in a subfolder.
+
 ```bash
 ./mvnw spring-boot:run
 ```

@@ -9,7 +9,9 @@ import io.jsonwebtoken.security.Keys;
 
 public class JwtUtil {
 
-    private static final String SECRET = "mysecretkeymysecretkeymysecretkey123456";
+    private static final String SECRET = System.getenv("JWT_SECRET") != null 
+            ? System.getenv("JWT_SECRET") 
+            : "mysecretkeymysecretkeymysecretkey123456default";
     private static final Key key = Keys.hmacShaKeyFor(SECRET.getBytes());
 
     public static String generateToken(String email) {
