@@ -32,8 +32,8 @@ public class AuthController {
         return new UserResponse(user.getId(), user.getEmail());
     }
     @PostMapping("/login")
-    public String login(@RequestBody User user) {
-        User loggedInUser = userService.login(user.getEmail(), user.getPassword());
+    public String login(@RequestBody RegisterRequest request) {
+        User loggedInUser = userService.login(request.getEmail(), request.getPassword());
 
     return JwtUtil.generateToken(loggedInUser.getEmail());
 
