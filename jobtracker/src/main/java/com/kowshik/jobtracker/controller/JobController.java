@@ -20,7 +20,7 @@ public class JobController {
     @PostMapping
     public Job addJob(@RequestBody JobRequest request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return jobService.addJob(email, request.getCompany(), request.getRole());
+        return jobService.addJob(email, request.getCompany(), request.getTitle(), request.getLocation());
     }
 
     @GetMapping

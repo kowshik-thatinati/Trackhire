@@ -21,13 +21,14 @@ public class JobService {
     @Autowired
     private UserRepository userRepository;
 
-    public Job addJob(String email, String company, String role) {
+    public Job addJob(String email, String company, String title, String location) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Job job = new Job();
         job.setCompany(company);
-        job.setRole(role);
+        job.setTitle(title);
+        job.setLocation(location);
         job.setStatus("APPLIED");
         job.setAppliedDate(LocalDate.now());
         job.setUser(user);

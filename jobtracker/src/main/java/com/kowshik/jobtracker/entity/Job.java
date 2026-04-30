@@ -12,9 +12,8 @@ public class Job {
     private Long id;
 
     private String company;
-
-    private String role;
-
+    private String title;
+    private String location;
     private String status; // APPLIED, INTERVIEW, REJECTED, OFFERED
 
     private LocalDate appliedDate;
@@ -37,12 +36,20 @@ public class Job {
         this.company = company;
     }
 
-    public String getRole() {
-        return role;
+    public String getTitle() {
+        return title;
     }
 
-    public void setRole(String role) {
-        this.role = role;
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
     }
 
     public String getStatus() {
