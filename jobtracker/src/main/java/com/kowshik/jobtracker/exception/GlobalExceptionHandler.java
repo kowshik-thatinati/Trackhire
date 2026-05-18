@@ -34,9 +34,17 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ex.getReason()));
     }
 
+    @ExceptionHandler(org.springframework.security.authentication.BadCredentialsException.class)
+    public ResponseEntity<ApiResponse<Void>> handleBadCredentials(org.springframework.security.authentication.BadCredentialsException ex) {
+        log.warn("[EXCEPTION] BadCredentials: {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponse<Void>> handleRuntime(RuntimeException ex) {
-        log.error("[EXCEPTION] Unhandled RuntimeException: {}", ex.getMessage(), ex);
+        log.error("[EXCEPTION] Unhandled RuntimeException during request", ex);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error("An internal server error occurred"));
@@ -44,7 +52,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGeneric(Exception ex) {
-        log.error("[EXCEPTION] Unexpected error: {}", ex.getMessage(), ex);
+        log.error("Unhandled exception during login", ex);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error("An unexpected error occurred"));

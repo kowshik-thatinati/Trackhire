@@ -40,13 +40,21 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<String>> login(@RequestBody RegisterRequest request) {
+        log.info("[DIAGNOSTIC] Entry into /auth/login for email: {}", maskEmail(request.getEmail()));
         try {
+            log.info("[DIAGNOSTIC] Starting user lookup and password verification");
             User loggedInUser = userService.login(request.getEmail(), request.getPassword());
+            
+            log.info("[DIAGNOSTIC] Password verification SUCCESS, starting JWT generation");
             String token = JwtUtil.generateToken(loggedInUser.getEmail());
+            
             log.info("[AUTH] Login success for: {}", maskEmail(request.getEmail()));
             return ResponseEntity.ok(ApiResponse.ok(token));
+        } catch (org.springframework.security.authentication.BadCredentialsException e) {
+            log.warn("[AUTH] Login FAILED for: {} - Bad Credentials", maskEmail(request.getEmail()));
+            throw e; // Handled by GlobalExceptionHandler
         } catch (Exception e) {
-            log.warn("[AUTH] Login FAILED for: {}", maskEmail(request.getEmail()));
+            log.error("[AUTH] Unexpected Exception during login for: {}", maskEmail(request.getEmail()), e);
             throw e; // Handled by GlobalExceptionHandler
         }
     }

@@ -36,19 +36,18 @@ public class UserService {
         
     }
     public User login(String email, String password) {
+        Optional<User> userOpt = userRepository.findByEmail(email);
 
-    Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            throw new org.springframework.security.authentication.BadCredentialsException("Invalid email or password");
+        }
 
-    if (userOpt.isEmpty()) {
-        throw new RuntimeException("User not found");
+        User user = userOpt.get();
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new org.springframework.security.authentication.BadCredentialsException("Invalid email or password");
+        }
+
+        return user;
     }
-
-    User user = userOpt.get();
-
-    if (!passwordEncoder.matches(password, user.getPassword())) {
-        throw new RuntimeException("Invalid password");
-    }
-
-    return user;
-}
 }
