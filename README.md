@@ -115,13 +115,13 @@ docker-compose up --build
 
 | Variable | Example | Source | Description |
 |---|---|---|---|
-| `SPRING_PROFILES_ACTIVE` | `render` | Set manually | Activates PostgreSQL profile |
-| `JWT_SECRET` | auto-generated | `render.yaml` auto-generates | HMAC-SHA256 signing key |
-| `DB_HOST` | `dpg-xxx.render.com` | Auto-injected by Render | PostgreSQL hostname |
-| `DB_PORT` | `5432` | Auto-injected by Render | PostgreSQL port |
-| `DB_NAME` | `jobtracker` | Auto-injected by Render | Database name |
-| `DB_USER` | `kowshik` | Auto-injected by Render | DB user |
-| `DB_PASSWORD` | `<random>` | Auto-injected by Render | DB password |
+| `SPRING_PROFILES_ACTIVE` | `render` | Activates PostgreSQL profile |
+| `JWT_SECRET` | `32+ char random string` | HMAC-SHA256 signing key |
+| `DB_HOST` | `dpg-xxx.render.com` | PostgreSQL hostname (external DB) |
+| `DB_PORT` | `5432` | PostgreSQL port |
+| `DB_NAME` | `jobtracker` | Database name |
+| `DB_USERNAME` | `kowshik` | DB user |
+| `DB_PASSWORD` | `<random>` | DB password |
 
 ### Docker Compose Profile (`SPRING_PROFILES_ACTIVE=prod`, local only)
 
@@ -234,21 +234,22 @@ curl https://jobtracker-backend.onrender.com/actuator/health
 
 ## 🚢 Deployment
 
-### Render (Backend) — Option A: Blueprint (Recommended)
-1. Commit `render.yaml` to your repo (already done)
-2. Render Dashboard → **New → Blueprint** → connect GitHub repo
-3. Render automatically provisions the web service + PostgreSQL database
-4. Set `JWT_SECRET` manually if not auto-generated
-5. Copy the **Deploy Hook URL** from Service → Settings → Deploy Hook
-6. Add it as GitHub secret `RENDER_DEPLOY_HOOK_URL`
-7. Push to `main` → GitHub Actions tests → Docker push → Render redeploys
-
-### Render (Backend) — Option B: Manual Docker Deploy
-1. Render Dashboard → New Web Service → Connect repo
-2. Runtime: **Docker**, Dockerfile path: `./jobtracker/Dockerfile`
-3. Add a free PostgreSQL database → copy connection vars
-4. Set env vars: `SPRING_PROFILES_ACTIVE=render`, `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `JWT_SECRET`
-5. Copy Deploy Hook URL → add as `RENDER_DEPLOY_HOOK_URL` GitHub secret
+### Render (Backend)
+1. Render Dashboard → **New Web Service** → Connect your GitHub repo
+2. Runtime: **Docker**
+3. Dockerfile path: `./jobtracker/Dockerfile`
+4. Use an external free PostgreSQL database (e.g. Neon, Supabase, Aiven) and gather connection details.
+5. Set environment variables under **Environment**:
+   - `SPRING_PROFILES_ACTIVE=render`
+   - `DB_HOST`
+   - `DB_PORT`
+   - `DB_NAME`
+   - `DB_USERNAME`
+   - `DB_PASSWORD`
+   - `JWT_SECRET` (generate a strong 32+ character random string)
+6. Go to your new Render Service → **Settings** → **Deploy Hook**
+7. Copy the Hook URL and add it as a GitHub secret: `RENDER_DEPLOY_HOOK_URL`
+8. Push to `main` → GitHub Actions tests → Docker push → Render redeploys automatically
 
 ### Vercel (Frontend)
 1. Import `job-tracker-ui` folder as Vercel project
