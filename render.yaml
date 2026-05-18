@@ -1,0 +1,54 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# render.yaml — Render Infrastructure as Code
+#
+# This file provisions the backend web service AND a free PostgreSQL database
+# on Render in one shot. Commit this file and Render picks it up automatically.
+#
+# Deploy: Render Dashboard → New → Blueprint → connect this repo.
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  - type: web
+    name: jobtracker-backend
+    runtime: docker
+    # Uses the optimised multi-stage Dockerfile in the jobtracker/ subfolder
+    dockerfilePath: ./jobtracker/Dockerfile
+    dockerContext: ./jobtracker
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: render                   # activates application-render.properties
+
+      - key: JWT_SECRET
+        generateValue: true             # Render generates a random value on first deploy
+
+      # Injected automatically from the sibling Render PostgreSQL service below
+      - key: DB_HOST
+        fromDatabase:
+          name: jobtracker-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: jobtracker-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: jobtracker-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: jobtracker-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: jobtracker-db
+          property: password
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Free PostgreSQL database (90-day free trial on Render)
+# After the trial, swap for any external free Postgres (e.g., Neon, Supabase)
+# ─────────────────────────────────────────────────────────────────────────────
+databases:
+  - name: jobtracker-db
+    plan: free
+    databaseName: jobtracker
+    user: kowshik

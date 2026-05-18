@@ -1,0 +1,82 @@
+version: '3.9'
+
+# ─────────────────────────────────────────────────────────────────────────────
+# JobTracker — Local Development Stack
+#
+# Usage:
+#   Full stack (MySQL + backend + frontend):
+#     docker-compose up --build
+#
+#   Backend only with H2 (no MySQL needed):
+#     docker-compose up backend-dev
+#     (uses Spring dev profile with in-memory H2 DB)
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── MySQL Database ────────────────────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: jobtracker-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQLPASSWORD:-root123}
+      MYSQL_DATABASE: ${MYSQLDATABASE:-jobtracker}
+      MYSQL_USER: ${MYSQLUSER:-kowshik}
+      MYSQL_PASSWORD: ${MYSQLPASSWORD:-root123}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQLPASSWORD:-root123}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Spring Boot Backend (MySQL profile) ───────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jobtracker-backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      MYSQLHOST: mysql
+      MYSQLPORT: 3306
+      MYSQLDATABASE: ${MYSQLDATABASE:-jobtracker}
+      MYSQLUSER: ${MYSQLUSER:-kowshik}
+      MYSQLPASSWORD: ${MYSQLPASSWORD:-root123}
+      JWT_SECRET: ${JWT_SECRET:-local-dev-secret-min-32-chars-long!}
+      PORT: 8080
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q UP"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ── React Frontend ────────────────────────────────────────────────────────
+  frontend:
+    image: node:20-alpine
+    container_name: jobtracker-frontend
+    working_dir: /app
+    volumes:
+      - ./job-tracker-ui:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:8080
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:
+    driver: local

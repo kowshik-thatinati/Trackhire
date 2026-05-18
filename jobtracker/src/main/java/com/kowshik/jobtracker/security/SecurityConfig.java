@@ -36,7 +36,8 @@ public class SecurityConfig {
                 .requestMatchers("/", "/health", "/error").permitAll()
                 .requestMatchers("/auth/**").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
-
+                // Actuator health/info publicly accessible for uptime monitors
+                .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                 // Everything else secured
                 .anyRequest().authenticated()
             )

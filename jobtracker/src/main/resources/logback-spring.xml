@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!--
+      Profile-aware logging configuration.
+        dev     → human-readable colored output
+        prod    → structured JSON-style output for log aggregators
+    -->
+
+    <!-- ── DEV profile: readable, colored ──────────────────────────────── -->
+    <springProfile name="dev,default">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{HH:mm:ss.SSS} %highlight(%-5level) %cyan(%logger{36}) - %msg%n</pattern>
+            </encoder>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+
+        <!-- Show SQL in dev -->
+        <logger name="org.hibernate.SQL" level="DEBUG"/>
+    </springProfile>
+
+    <!-- ── PROD profile: structured JSON lines ──────────────────────────── -->
+    <springProfile name="prod">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>{"time":"%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ}","level":"%-5level","logger":"%logger{50}","thread":"%thread","msg":"%replace(%msg){'\"','\\\"'}"}%n</pattern>
+            </encoder>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+
+        <!-- Suppress noisy framework logs in prod -->
+        <logger name="org.springframework.security" level="WARN"/>
+        <logger name="org.hibernate"                level="WARN"/>
+        <logger name="com.zaxxer.hikari"            level="WARN"/>
+    </springProfile>
+
+</configuration>

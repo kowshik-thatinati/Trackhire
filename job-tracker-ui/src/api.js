@@ -1,4 +1,16 @@
-const BASE_URL = import.meta.env.VITE_API_URL || "https://trackhire-production.up.railway.app";
+/**
+ * api.js — Centralised API client for JobTracker.
+ *
+ * All backend responses now follow the standard envelope:
+ *   { success: bool, data: T, error: string, timestamp: string }
+ *
+ * This module unpacks that envelope so callers receive the inner `data`
+ * directly, and throws a human-readable error on failure.
+ */
+
+const BASE_URL = import.meta.env.VITE_API_URL || "";
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
 
 function getToken() {
   return localStorage.getItem("token");
@@ -11,17 +23,27 @@ function authHeaders() {
   };
 }
 
+/**
+ * Parse the ApiResponse envelope.
+ * Returns response.data on success, throws response.error on failure.
+ */
+async function parseResponse(res) {
+  const body = await res.json();
+  if (!res.ok || !body.success) {
+    throw new Error(body.error || `Request failed with status ${res.status}`);
+  }
+  return body.data;
+}
+
+// ── Auth ─────────────────────────────────────────────────────────────────────
+
 export async function registerUser(email, password) {
   const res = await fetch(`${BASE_URL}/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
   });
-  if (!res.ok) {
-    const msg = await res.text();
-    throw new Error(msg || "Registration failed");
-  }
-  return res.json();
+  return parseResponse(res); // returns UserResponse { id, email }
 }
 
 export async function loginUser(email, password) {
@@ -30,8 +52,7 @@ export async function loginUser(email, password) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
   });
-  if (!res.ok) throw new Error("Invalid credentials");
-  const token = await res.text();
+  const token = await parseResponse(res); // returns JWT string from data field
   localStorage.setItem("token", token);
   localStorage.setItem("userEmail", email);
   return token;
@@ -42,20 +63,20 @@ export function logoutUser() {
   localStorage.removeItem("userEmail");
 }
 
+// ── Jobs ─────────────────────────────────────────────────────────────────────
+
 export async function fetchJobs() {
   const res = await fetch(`${BASE_URL}/jobs`, { headers: authHeaders() });
-  if (!res.ok) throw new Error("Failed to fetch jobs");
-  return res.json();
+  return parseResponse(res); // returns Job[]
 }
 
-export async function createJob(company, role) {
+export async function createJob(company, title, location) {
   const res = await fetch(`${BASE_URL}/jobs`, {
     method: "POST",
     headers: authHeaders(),
-    body: JSON.stringify({ company, role }),
+    body: JSON.stringify({ company, title, location }),
   });
-  if (!res.ok) throw new Error("Failed to create job");
-  return res.json();
+  return parseResponse(res); // returns Job
 }
 
 export async function updateJobStatus(id, status) {
@@ -64,8 +85,7 @@ export async function updateJobStatus(id, status) {
     headers: authHeaders(),
     body: JSON.stringify({ status }),
   });
-  if (!res.ok) throw new Error("Failed to update job");
-  return res.json();
+  return parseResponse(res); // returns updated Job
 }
 
 export async function deleteJob(id) {
@@ -73,6 +93,5 @@ export async function deleteJob(id) {
     method: "DELETE",
     headers: authHeaders(),
   });
-  if (!res.ok) throw new Error("Failed to delete job");
-  return res.text();
+  return parseResponse(res); // returns "Job deleted successfully"
 }

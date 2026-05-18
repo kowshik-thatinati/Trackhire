@@ -1,5 +1,6 @@
 package com.kowshik.jobtracker.controller;
 
+import com.kowshik.jobtracker.dto.ApiResponse;
 import com.kowshik.jobtracker.dto.JobRequest;
 import com.kowshik.jobtracker.entity.Job;
 import com.kowshik.jobtracker.service.JobService;
@@ -18,34 +19,36 @@ public class JobController {
     private JobService jobService;
 
     @PostMapping
-    public Job addJob(@RequestBody JobRequest request) {
+    public ResponseEntity<ApiResponse<Job>> addJob(@RequestBody JobRequest request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return jobService.addJob(email, request.getCompany(), request.getTitle(), request.getLocation());
+        Job job = jobService.addJob(email, request.getCompany(), request.getTitle(), request.getLocation());
+        return ResponseEntity.ok(ApiResponse.ok(job));
     }
 
     @GetMapping
-    public List<Job> getJobs() {
+    public ResponseEntity<ApiResponse<List<Job>>> getJobs() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return jobService.getJobs(email);
+        List<Job> jobs = jobService.getJobs(email);
+        return ResponseEntity.ok(ApiResponse.ok(jobs));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Job> updateJob(@PathVariable Long id, @RequestBody JobStatusRequest request) {
+    public ResponseEntity<ApiResponse<Job>> updateJob(@PathVariable Long id,
+                                                       @RequestBody JobStatusRequest request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Job updated = jobService.updateJob(id, email, request.getStatus());
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(ApiResponse.ok(updated));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteJob(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<String>> deleteJob(@PathVariable Long id) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         jobService.deleteJob(id, email);
-        return ResponseEntity.ok("Job deleted successfully");
+        return ResponseEntity.ok(ApiResponse.ok("Job deleted successfully"));
     }
 
     public static class JobStatusRequest {
         private String status;
-
         public String getStatus() { return status; }
         public void setStatus(String status) { this.status = status; }
     }
