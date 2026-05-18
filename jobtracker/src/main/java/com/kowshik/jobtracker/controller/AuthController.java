@@ -40,22 +40,26 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<String>> login(@RequestBody RegisterRequest request) {
-        log.info("[DIAGNOSTIC] Entry into /auth/login for email: {}", maskEmail(request.getEmail()));
+        log.info("[DIAG] login endpoint entered");
         try {
-            log.info("[DIAGNOSTIC] Starting user lookup and password verification");
+            log.info("[DIAG] request email={}", request.getEmail());
+            
+            log.info("[DIAG] starting user lookup and password verification");
             User loggedInUser = userService.login(request.getEmail(), request.getPassword());
+            log.info("[DIAG] password verification passed for user id={}", loggedInUser != null ? loggedInUser.getId() : "null");
             
-            log.info("[DIAGNOSTIC] Password verification SUCCESS, starting JWT generation");
+            log.info("[DIAG] entering JWT generation");
             String token = JwtUtil.generateToken(loggedInUser.getEmail());
+            log.info("[DIAG] JWT generation completed");
             
-            log.info("[AUTH] Login success for: {}", maskEmail(request.getEmail()));
+            log.info("[DIAG] preparing response");
             return ResponseEntity.ok(ApiResponse.ok(token));
         } catch (org.springframework.security.authentication.BadCredentialsException e) {
             log.warn("[AUTH] Login FAILED for: {} - Bad Credentials", maskEmail(request.getEmail()));
-            throw e; // Handled by GlobalExceptionHandler
-        } catch (Exception e) {
-            log.error("[AUTH] Unexpected Exception during login for: {}", maskEmail(request.getEmail()), e);
-            throw e; // Handled by GlobalExceptionHandler
+            throw e; 
+        } catch (Exception ex) {
+            log.error("[DIAG] LOGIN FAILURE", ex);
+            throw ex; 
         }
     }
 
